@@ -4,9 +4,6 @@ import type {
 } from "@cline/shared";
 import type {
 	ClineAccountBalance,
-	ClineAccountOrganization,
-	ClineAccountOrganizationBalance,
-	ClineAccountOrganizationUsageTransaction,
 	ClineAccountPaymentTransaction,
 	ClineAccountUsageTransaction,
 	ClineAccountUser,
@@ -23,15 +20,6 @@ export interface ClineAccountOperations {
 	fetchPaymentTransactions(
 		userId?: string,
 	): Promise<ClineAccountPaymentTransaction[]>;
-	fetchUserOrganizations(): Promise<ClineAccountOrganization[]>;
-	fetchOrganizationBalance(
-		organizationId: string,
-	): Promise<ClineAccountOrganizationBalance>;
-	fetchOrganizationUsageTransactions(input: {
-		organizationId: string;
-		memberId?: string;
-	}): Promise<ClineAccountOrganizationUsageTransaction[]>;
-	switchAccount(organizationId?: string | null): Promise<void>;
 	fetchFeaturebaseToken?(): Promise<FeaturebaseTokenResponse | undefined>;
 	fetchCurrentUserPlan?(): Promise<UserCurrentPlan | undefined>;
 }
@@ -55,18 +43,6 @@ export async function executeClineAccountAction(
 			return service.fetchUsageTransactions(request.userId);
 		case "fetchPaymentTransactions":
 			return service.fetchPaymentTransactions(request.userId);
-		case "fetchUserOrganizations":
-			return service.fetchUserOrganizations();
-		case "fetchOrganizationBalance":
-			return service.fetchOrganizationBalance(request.organizationId);
-		case "fetchOrganizationUsageTransactions":
-			return service.fetchOrganizationUsageTransactions({
-				organizationId: request.organizationId,
-				memberId: request.memberId,
-			});
-		case "switchAccount":
-			await service.switchAccount(request.organizationId);
-			return { updated: true };
 		case "fetchFeaturebaseToken":
 			return service.fetchFeaturebaseToken?.();
 		case "fetchCurrentUserPlan":
@@ -125,51 +101,6 @@ export class RpcClineAccountService implements ClineAccountOperations {
 			action: "clineAccount",
 			operation: "fetchPaymentTransactions",
 			...(userId?.trim() ? { userId: userId.trim() } : {}),
-		});
-	}
-
-	public async fetchUserOrganizations(): Promise<ClineAccountOrganization[]> {
-		return this.request<ClineAccountOrganization[]>({
-			action: "clineAccount",
-			operation: "fetchUserOrganizations",
-		});
-	}
-
-	public async fetchOrganizationBalance(
-		organizationId: string,
-	): Promise<ClineAccountOrganizationBalance> {
-		const orgId = organizationId.trim();
-		if (!orgId) {
-			throw new Error("organizationId is required");
-		}
-		return this.request<ClineAccountOrganizationBalance>({
-			action: "clineAccount",
-			operation: "fetchOrganizationBalance",
-			organizationId: orgId,
-		});
-	}
-
-	public async fetchOrganizationUsageTransactions(input: {
-		organizationId: string;
-		memberId?: string;
-	}): Promise<ClineAccountOrganizationUsageTransaction[]> {
-		const orgId = input.organizationId.trim();
-		if (!orgId) {
-			throw new Error("organizationId is required");
-		}
-		return this.request<ClineAccountOrganizationUsageTransaction[]>({
-			action: "clineAccount",
-			operation: "fetchOrganizationUsageTransactions",
-			organizationId: orgId,
-			...(input.memberId?.trim() ? { memberId: input.memberId.trim() } : {}),
-		});
-	}
-
-	public async switchAccount(organizationId?: string | null): Promise<void> {
-		await this.request<{ updated: boolean }>({
-			action: "clineAccount",
-			operation: "switchAccount",
-			organizationId: organizationId?.trim() || null,
 		});
 	}
 

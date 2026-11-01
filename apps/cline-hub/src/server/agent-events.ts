@@ -151,7 +151,6 @@ export function handleSessionEvent(
 		const text = chunkText((payload as Record<string, unknown>).chunk);
 		sendChunkToSelectedPeers(ctx, sessionId, text);
 	} else if (event.type === "agent_event") {
-		if (event.payload.teamRole === "teammate") return;
 		forwardAgentEvent(ctx, sessionId, event.payload.event);
 	} else if (event.type === "status") {
 		const status = asString((payload as Record<string, unknown>).status);

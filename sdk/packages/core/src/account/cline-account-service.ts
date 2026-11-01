@@ -1,12 +1,8 @@
 import type {
 	ClineAccountBalance,
-	ClineAccountOrganization,
-	ClineAccountOrganizationBalance,
-	ClineAccountOrganizationUsageTransaction,
 	ClineAccountPaymentTransaction,
 	ClineAccountUsageTransaction,
 	ClineAccountUser,
-	ClineOrganization,
 	ClineSubscriptionPlan,
 	FeaturebaseTokenResponse,
 	UserCurrentPlan,
@@ -56,9 +52,6 @@ export interface ClineAccountServiceOptions {
 		| string
 		| undefined
 		| null;
-	getOrganizationMemberId?: (
-		organizationId: string,
-	) => Promise<string | undefined | null> | string | undefined | null;
 	getHeaders?: () =>
 		| Promise<Record<string, string> | undefined>
 		| Record<string, string>
@@ -71,7 +64,6 @@ export class ClineAccountService {
 	private readonly apiBaseUrl: string;
 	private readonly getAuthTokenFn: ClineAccountServiceOptions["getAuthToken"];
 	private readonly getCurrentUserIdFn: ClineAccountServiceOptions["getCurrentUserId"];
-	private readonly getOrganizationMemberIdFn: ClineAccountServiceOptions["getOrganizationMemberId"];
 	private readonly getHeadersFn: ClineAccountServiceOptions["getHeaders"];
 	private readonly requestTimeoutMs: number;
 	private readonly fetchImpl: typeof fetch;
@@ -85,7 +77,6 @@ export class ClineAccountService {
 		this.apiBaseUrl = apiBaseUrl;
 		this.getAuthTokenFn = options.getAuthToken;
 		this.getCurrentUserIdFn = options.getCurrentUserId;
-		this.getOrganizationMemberIdFn = options.getOrganizationMemberId;
 		this.getHeadersFn = options.getHeaders;
 		this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
 		this.fetchImpl = options.fetchImpl ?? fetch;
@@ -140,11 +131,6 @@ export class ClineAccountService {
 		return response.paymentTransactions ?? [];
 	}
 
-	public async fetchUserOrganizations(): Promise<ClineAccountOrganization[]> {
-		const me = await this.fetchMe();
-		return me.organizations ?? [];
-	}
-
 	public async fetchAvailableSubscriptionPlans(input?: {
 		type?: "individual" | "teams";
 	}): Promise<ClineSubscriptionPlan[]> {
@@ -159,61 +145,6 @@ export class ClineAccountService {
 
 	public async fetchCurrentUserPlan(): Promise<UserCurrentPlan | undefined> {
 		return this.request<UserCurrentPlan | undefined>("/api/v1/users/me/plan");
-	}
-
-	public async fetchOrganization(
-		organizationId: string,
-	): Promise<ClineOrganization> {
-		const orgId = organizationId.trim();
-		if (!orgId) {
-			throw new Error("organizationId is required");
-		}
-		return this.request<ClineOrganization>(
-			`/api/v1/organizations/${encodeURIComponent(orgId)}`,
-		);
-	}
-
-	public async fetchOrganizationBalance(
-		organizationId: string,
-	): Promise<ClineAccountOrganizationBalance> {
-		const orgId = organizationId.trim();
-		if (!orgId) {
-			throw new Error("organizationId is required");
-		}
-		return this.request<ClineAccountOrganizationBalance>(
-			`/api/v1/organizations/${encodeURIComponent(orgId)}/balance`,
-		);
-	}
-
-	public async fetchOrganizationUsageTransactions(input: {
-		organizationId: string;
-		memberId?: string;
-	}): Promise<ClineAccountOrganizationUsageTransaction[]> {
-		const organizationId = input.organizationId.trim();
-		if (!organizationId) {
-			throw new Error("organizationId is required");
-		}
-
-		const memberId = await this.resolveOrganizationMemberId(
-			organizationId,
-			input.memberId,
-		);
-		const response = await this.request<{
-			items: ClineAccountOrganizationUsageTransaction[];
-		}>(
-			`/api/v1/organizations/${encodeURIComponent(organizationId)}/members/${encodeURIComponent(memberId)}/usages`,
-		);
-		return response.items ?? [];
-	}
-
-	public async switchAccount(organizationId?: string | null): Promise<void> {
-		await this.request<void>("/api/v1/users/active-account", {
-			method: "PUT",
-			body: {
-				organizationId: organizationId?.trim() || null,
-			},
-			expectNoContent: true,
-		});
 	}
 
 	private async resolveUserId(userId?: string): Promise<string> {
@@ -235,35 +166,6 @@ export class ClineAccountService {
 			throw new Error("Unable to resolve current user id");
 		}
 		return me.id;
-	}
-
-	private async resolveOrganizationMemberId(
-		organizationId: string,
-		memberId?: string,
-	): Promise<string> {
-		const explicit = memberId?.trim();
-		if (explicit) {
-			return explicit;
-		}
-
-		const fromProvider = this.getOrganizationMemberIdFn
-			? await this.getOrganizationMemberIdFn(organizationId)
-			: undefined;
-		const provided = fromProvider?.trim();
-		if (provided) {
-			return provided;
-		}
-
-		const organizations = await this.fetchUserOrganizations();
-		const resolved = organizations.find(
-			(org) => org.organizationId === organizationId,
-		)?.memberId;
-		if (!resolved?.trim()) {
-			throw new Error(
-				`Unable to resolve memberId for organization ${organizationId}`,
-			);
-		}
-		return resolved;
 	}
 
 	private async request<T>(

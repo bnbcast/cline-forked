@@ -223,7 +223,6 @@ export type {
 	SessionPendingPrompt,
 	SessionPendingPromptSubmittedEvent,
 	SessionPendingPromptsEvent,
-	SessionTeamProgressEvent,
 	SessionToolEvent,
 } from "./types/events";
 export type { SessionMessagesArtifactUploader } from "./types/session";
@@ -233,4 +232,4 @@ export type {
 	SessionRecord,
 	SessionRef,
 } from "./types/sessions";
-export type { ArtifactStore, SessionStore, TeamStore } from "./types/storage";
+export type { ArtifactStore, SessionStore } from "./types/storage";

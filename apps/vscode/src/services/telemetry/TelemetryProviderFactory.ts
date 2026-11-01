@@ -106,7 +106,8 @@ export class TelemetryProviderFactory {
 	 * @returns Default configuration using available providers
 	 */
 	public static getDefaultConfigs(): TelemetryProviderConfig[] {
-		const configs: TelemetryProviderConfig[] = []
+		// Telemetry disabled for personal use.
+		return [{ type: "no-op" }];
 
 		// Skip PostHog in selfHosted mode - enterprise customers should not send telemetry to PostHog
 		if (!ClineEndpoint.isSelfHosted() && isPostHogConfigValid(posthogConfig)) {

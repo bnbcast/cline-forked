@@ -245,7 +245,6 @@ export interface CoreSessionConfig
 		Omit<
 			SessionExecutionConfig,
 			| "enableTools"
-			| "teamName"
 			| "missionLogIntervalSteps"
 			| "missionLogIntervalMs"
 			| "maxConsecutiveMistakes"
@@ -262,7 +261,6 @@ export interface CoreSessionConfig
 	sessionId?: string;
 	workspaceRoot?: string;
 	systemPrompt: string;
-	teamName?: string;
 	missionLogIntervalSteps?: number;
 	missionLogIntervalMs?: number;
 	hooks?: AgentHooks;

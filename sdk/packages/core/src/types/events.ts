@@ -31,13 +31,6 @@ export interface SessionToolEvent {
 	ts?: string;
 }
 
-export interface SessionTeamProgressEvent {
-	sessionId: string;
-	teamName: string;
-	lifecycle: import("@cline/shared").TeamProgressLifecycleEvent;
-	summary: import("@cline/shared").TeamProgressSummary;
-}
-
 export interface SessionPendingPrompt {
 	id: string;
 	prompt: string;
@@ -80,7 +73,6 @@ export type CoreSessionEvent =
 				teamRole?: "lead" | "teammate";
 			};
 	  }
-	| { type: "team_progress"; payload: SessionTeamProgressEvent }
 	| { type: "pending_prompts"; payload: SessionPendingPromptsEvent }
 	| {
 			type: "pending_prompt_submitted";

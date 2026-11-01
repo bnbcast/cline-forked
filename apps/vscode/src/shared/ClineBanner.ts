@@ -37,7 +37,7 @@ export interface BannersResponse {
 /**
  * Audience targeting options
  */
-type BannerAudience = "all" | "team_admin_only" | "team_members" | "personal_only"
+type BannerAudience = "all" | "personal_only"
 
 /**
  * Rules that can be evaluated for banner targeting
@@ -47,14 +47,10 @@ export interface BannerRules {
 	ide?: string[]
 	/** Target specific auth providers (e.g., "firebase", "workos") */
 	auth?: string[]
-	/** Target employees only */
-	employee_only?: boolean
 	/** Target users with specific API providers (e.g., "anthropic", "openai") */
 	providers?: string[]
 	/** Target specific audience segment */
 	audience?: BannerAudience[]
-	/**  Target team vs enterprise organizations */
-	org_type?: "all" | "team_only" | "enterprise_only" | ""
 	/** Minimum extension version required (e.g., "3.39.2") */
 	min_extension_version?: string
 	/** Optional actions embedded in rules JSON for banners */

@@ -31,10 +31,6 @@ const allTargets: {
 	os: string;
 	arch: "arm64" | "x64";
 }[] = [
-	{ os: "linux", arch: "arm64" },
-	{ os: "linux", arch: "x64" },
-	{ os: "darwin", arch: "arm64" },
-	{ os: "darwin", arch: "x64" },
 	{ os: "win32", arch: "x64" },
 	{ os: "win32", arch: "arm64" },
 ];

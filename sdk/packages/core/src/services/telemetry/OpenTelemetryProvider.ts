@@ -36,7 +36,6 @@ import {
 	ATTR_SERVICE_NAME,
 	ATTR_SERVICE_VERSION,
 } from "@opentelemetry/semantic-conventions";
-import { isTelemetryOptedOutGlobally } from "../global-settings";
 import { resolveCoreDistinctId } from "./distinct-id";
 import {
 	OpenTelemetryAdapter,
@@ -414,22 +413,10 @@ export function createConfiguredTelemetryService(
 	telemetry: ITelemetryService;
 	emitProviderCreated?: () => void;
 } {
-	if (isTelemetryOptedOutGlobally()) {
-		return {
-			telemetry: new OptedOutTelemetryService(options),
-		};
-	}
-
-	if (options.enabled !== true) {
-		return {
-			telemetry: new TelemetryService({
-				...options,
-				distinctId: resolveCoreDistinctId(options.distinctId),
-			}),
-		};
-	}
-
-	return createOpenTelemetryTelemetryService(options);
+	// Telemetry disabled for personal use: never emit or export anything.
+	return {
+		telemetry: new OptedOutTelemetryService(options),
+	};
 }
 
 /**

@@ -17,7 +17,6 @@ interface EndpointsFileSchema {
 
 /**
  * Error thrown when the Cline configuration file exists but is invalid.
- * This error prevents Cline from starting to avoid misconfiguration in enterprise environments.
  */
 export class ClineConfigurationError extends Error {
 	constructor(message: string) {
@@ -34,8 +33,6 @@ class ClineEndpoint {
 	// On-premise config loaded from file (null if not on-premise)
 	private onPremiseConfig: EndpointsFileSchema | null = null
 	private environment: Environment = Environment.production
-	// Track if config came from bundled file (enterprise distribution)
-	private isBundled = false
 
 	private constructor() {
 		// Set environment at module load. Use override if provided.
@@ -61,11 +58,12 @@ class ClineEndpoint {
 		ClineEndpoint._extensionFsPath = extensionFsPath
 		ClineEndpoint._instance = new ClineEndpoint()
 
-		// Try to load on-premise config from file
-		const endpointsConfig = await ClineEndpoint.loadEndpointsFile()
+		// Try to load config from file
+		// const endpointsConfig = await ClineEndpoint.loadConfigFile()
+		const endpointsConfig = undefined
 		if (endpointsConfig) {
 			ClineEndpoint._instance.onPremiseConfig = endpointsConfig
-			Logger.log("Cline running in self-hosted mode with custom endpoints")
+			Logger.log("Cline running with custom endpoints")
 		}
 
 		ClineEndpoint._initialized = true
@@ -89,18 +87,6 @@ class ClineEndpoint {
 			return true
 		}
 		return ClineEndpoint.config.environment === Environment.selfHosted
-	}
-
-	/**
-	 * Returns true if the current configuration was loaded from a bundled endpoints.json file.
-	 * This indicates an enterprise distribution that should not auto-update.
-	 * @throws Error if not initialized
-	 */
-	public static isBundledConfig(): boolean {
-		if (!ClineEndpoint._initialized || !ClineEndpoint._instance) {
-			throw new Error("ClineEndpoint not initialized. Call ClineEndpoint.initialize() first.")
-		}
-		return ClineEndpoint._instance.isBundled
 	}
 
 	/**
@@ -131,54 +117,16 @@ class ClineEndpoint {
 	}
 
 	/**
-	 * Returns the path to the bundled endpoints.json configuration file.
-	 * Located in the extension installation directory.
-	 */
-	private static getBundledEndpointsFilePath(): string {
-		return path.join(ClineEndpoint._extensionFsPath, "endpoints.json")
-	}
-
-	/**
 	 * Loads and validates the endpoints.json file.
-	 * Checks bundled location first, then falls back to user directory.
-	 * Priority: bundled endpoints.json → ~/.cline/endpoints.json → null (standard mode)
 	 * @returns The validated endpoints config, or null if no file exists
 	 * @throws ClineConfigurationError if a file exists but is invalid
 	 */
 	private static async loadEndpointsFile(): Promise<EndpointsFileSchema | null> {
-		// 1. Try bundled file
-		const bundledPath = ClineEndpoint.getBundledEndpointsFilePath()
-		try {
-			await fs.access(bundledPath)
-			// File exists, load and validate it
-			const fileContent = await fs.readFile(bundledPath, "utf8")
-			let data: unknown
-
-			try {
-				data = JSON.parse(fileContent)
-			} catch (parseError) {
-				throw new ClineConfigurationError(
-					`Invalid JSON in bundled endpoints configuration file (${bundledPath}): ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-				)
-			}
-
-			const config = ClineEndpoint.validateEndpointsSchema(data, bundledPath)
-			// Mark as bundled enterprise distribution
-			ClineEndpoint._instance!.isBundled = true
-			return config
-		} catch (error) {
-			if (error instanceof ClineConfigurationError) {
-				throw error
-			}
-			// Bundled file doesn't exist or is not accessible, try user file
-		}
-
-		// 2. Try ~/.cline/endpoints.json
 		const userPath = ClineEndpoint.getEndpointsFilePath()
 		try {
 			await fs.access(userPath)
 		} catch {
-			// File doesn't exist - not on-premise mode
+			// File doesn't exist - no custom config
 			return null
 		}
 
@@ -191,7 +139,7 @@ class ClineEndpoint {
 				data = JSON.parse(fileContent)
 			} catch (parseError) {
 				throw new ClineConfigurationError(
-					`Invalid JSON in user endpoints configuration file (${userPath}): ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+					`Invalid JSON in endpoints configuration file (${userPath}): ${parseError instanceof Error ? parseError.message : String(parseError)}`,
 				)
 			}
 
@@ -201,7 +149,7 @@ class ClineEndpoint {
 				throw error
 			}
 			throw new ClineConfigurationError(
-				`Failed to read user endpoints configuration file (${userPath}): ${error instanceof Error ? error.message : String(error)}`,
+				`Failed to read endpoints configuration file (${userPath}): ${error instanceof Error ? error.message : String(error)}`,
 			)
 		}
 	}

@@ -84,9 +84,7 @@ function buildSessionStartInput(
 		reasonLevel?: WebviewReasonLevel;
 		enableTools?: boolean;
 		enableSpawn?: boolean;
-		enableTeams?: boolean;
 		autoApproveTools?: boolean;
-		teamName?: string;
 		source?: SessionSource;
 		sessionMetadata?: Record<string, unknown>;
 		initialMessages?: MessageWithMetadata[];
@@ -108,8 +106,6 @@ function buildSessionStartInput(
 			maxIterations: options?.maxIterations,
 			enableTools: options?.enableTools !== false,
 			enableSpawnAgent: options?.enableSpawn !== false,
-			enableAgentTeams: options?.enableTeams === true,
-			teamName: options?.teamName ?? "cline-hub",
 			missionLogIntervalSteps: 3,
 			missionLogIntervalMs: 120000,
 			checkpoint: { enabled: true },
@@ -159,12 +155,10 @@ function buildStartInputFromSession(
 			reasonLevel: asWebviewReasonLevel(metadata.reasonLevel),
 			enableTools: session.enableTools,
 			enableSpawn: session.enableSpawn,
-			enableTeams: session.enableTeams,
 			autoApproveTools:
 				typeof metadata.autoApproveTools === "boolean"
 					? metadata.autoApproveTools
 					: undefined,
-			teamName: session.teamName,
 			source: session.source,
 			sessionMetadata: { ...metadata, ...(options?.sessionMetadata ?? {}) },
 			initialMessages: options?.initialMessages,

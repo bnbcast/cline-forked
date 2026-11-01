@@ -7,8 +7,6 @@
         "apps/vscode/webview-ui",
         "apps/vscode/testing-platform",
         "apps/cline-hub/src/webview",
-        "apps/examples/*",
-        "apps/examples/vscode/src/webview",
         "sdk/examples",
         "sdk/examples/plugins/*"
     ],
@@ -20,15 +18,11 @@
         "build:models": "bun -F @cline/llms generate:models && bun format --write",
         "dev": "bun --conditions=development run build:sdk && bun run cli && bun run cli hub stop",
         "cli": "bun --conditions=development --cwd apps/cli dev",
-        "code": "bun --conditions=development -F @cline/code dev",
         "clean": "bun run sdk/scripts/clean.ts",
         "types": "bun --parallel -F '*' typecheck",
         "test": "bun --parallel -F './sdk/packages/**' -F @cline/cli -F @cline/cline-hub -F @cline/vscode test",
-        "test:unit": "bash -lc 'set -euo pipefail; bun -F @cline/agents test & p1=$!; bun -F @cline/llms test & p2=$!; bun -F @cline/core test:unit & p3=$!; bun -F @cline/cli test:unit & p4=$!; bun -F @cline/cline-hub test & p5=$!; bun -F @cline/vscode test & p6=$!; wait $p1; wait $p2; wait $p3; wait $p4; wait $p5; wait $p6'",
         "test:e2e": "bun -F @cline/core test:e2e && bun -F @cline/cli test:e2e",
         "test:e2e:interactive": "bun -F @cline/cli test:e2e:interactive",
-        "verify:routines": "zsh -lc 'cd sdk/packages/core && bunx vitest run src/cron/schedule-service.test.ts --config vitest.config.ts'",
-        "verify:workos-device-auth": "bun sdk/scripts/verify-workos-device-auth.ts",
         "biome": "bunx --bun @biomejs/biome",
         "format": "bun biome format sdk/ apps/cli/ apps/cline-hub/ apps/examples/",
         "lint": "bun biome lint sdk/ apps/cli/ apps/cline-hub/ apps/examples/",
@@ -39,11 +33,9 @@
     },
     "lint-staged": {
         "sdk/**": [
-            "sh -c 'bun run types'",
             "bun biome check --no-errors-on-unmatched --files-ignore-unknown=true"
         ],
         "apps/{cli,cline-hub,examples}/**": [
-            "sh -c 'bun run types'",
             "bun biome check --no-errors-on-unmatched --files-ignore-unknown=true"
         ]
     },

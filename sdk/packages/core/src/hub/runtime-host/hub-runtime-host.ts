@@ -193,8 +193,6 @@ function buildCommandSessionMetadata(
 		model: input.config.modelId,
 		enableTools: input.config.enableTools,
 		enableSpawn: input.config.enableSpawnAgent,
-		enableTeams: input.config.enableAgentTeams,
-		teamName: input.config.teamName,
 		prompt: input.prompt,
 		interactive: input.interactive === true,
 	};
@@ -669,14 +667,10 @@ function toSessionRecord(session: HubSessionRecord): SessionRecord {
 		model: typeof metadata?.model === "string" ? metadata.model : "hub",
 		cwd: session.cwd?.trim() || session.workspaceRoot,
 		workspaceRoot: session.workspaceRoot,
-		teamName:
-			typeof metadata?.teamName === "string" ? metadata.teamName : undefined,
 		enableTools:
 			session.runtimeOptions?.enableTools ?? metadata?.enableTools === true,
 		enableSpawn:
 			session.runtimeOptions?.enableSpawn ?? metadata?.enableSpawn === true,
-		enableTeams:
-			session.runtimeOptions?.enableTeams ?? metadata?.enableTeams === true,
 		prompt: typeof metadata?.prompt === "string" ? metadata.prompt : undefined,
 		metadata,
 		updatedAt: new Date(session.updatedAt).toISOString(),
@@ -737,10 +731,8 @@ function buildManifest(
 		model: input.config.modelId,
 		cwd,
 		workspace_root: workspaceRoot,
-		team_name: input.config.teamName,
 		enable_tools: input.config.enableTools,
 		enable_spawn: input.config.enableSpawnAgent,
-		enable_teams: input.config.enableAgentTeams,
 		prompt: input.prompt?.trim() || undefined,
 		metadata: buildSessionHistoryMetadata(input),
 	});
@@ -765,7 +757,6 @@ function buildManifestFromSnapshot(
 		team_name: snapshot.team?.name,
 		enable_tools: snapshot.capabilities.enableTools,
 		enable_spawn: snapshot.capabilities.enableSpawn,
-		enable_teams: snapshot.capabilities.enableTeams,
 		prompt: (snapshot.prompt ?? input.prompt?.trim()) || undefined,
 		metadata: snapshot.metadata,
 		messages_path: snapshot.artifacts?.messagesPath,

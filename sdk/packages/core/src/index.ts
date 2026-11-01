@@ -124,16 +124,12 @@ export * from "@cline/shared/storage";
 export {
 	type ClineAccountBalance,
 	type ClineAccountOperations,
-	type ClineAccountOrganization,
-	type ClineAccountOrganizationBalance,
-	type ClineAccountOrganizationUsageTransaction,
 	type ClineAccountPaymentTransaction,
 	ClineAccountService,
 	type ClineAccountServiceOptions,
 	type ClineAccountTelemetryIdentity,
 	type ClineAccountUsageTransaction,
 	type ClineAccountUser,
-	type ClineOrganization,
 	type ClineSubscriptionPlan,
 	executeClineAccountAction,
 	type FeaturebaseTokenResponse,
@@ -143,7 +139,6 @@ export {
 	RpcClineAccountService,
 	resolveClineAccountTelemetryIdentity,
 	type UserCurrentPlan,
-	type UserRemoteConfigOrganization,
 	type UserRemoteConfigResponse,
 } from "./account";
 export {
@@ -779,10 +774,6 @@ export {
 export { ProviderSettingsManager } from "./services/storage/provider-settings-manager";
 export { SqliteSessionStore } from "./services/storage/sqlite-session-store";
 export {
-	SqliteTeamStore,
-	type SqliteTeamStoreOptions,
-} from "./services/storage/team-store";
-export {
 	resolveCoreDeviceId,
 	resolveCoreDistinctId,
 } from "./services/telemetry";
@@ -1181,7 +1172,6 @@ export type {
 	SessionPendingPrompt,
 	SessionPendingPromptSubmittedEvent,
 	SessionPendingPromptsEvent,
-	SessionTeamProgressEvent,
 	SessionToolEvent,
 } from "./types/events";
 export type {
@@ -1202,4 +1192,4 @@ export type {
 	SessionRecord,
 	SessionRef,
 } from "./types/sessions";
-export type { ArtifactStore, SessionStore, TeamStore } from "./types/storage";
+export type { ArtifactStore, SessionStore } from "./types/storage";

@@ -199,70 +199,8 @@ export async function resolveAiSdkTelemetry(
 	providerId: string,
 	samplingKey?: string,
 ): Promise<AiSdkTelemetryDecision> {
-	if (!isClineProviderId(providerId)) {
-		if (!isAllProvidersTracingEnabled()) {
-			return TELEMETRY_DISABLED;
-		}
-		const config = readDirectLangfuseTelemetryConfig();
-		if (!config) return TELEMETRY_DISABLED;
-		const integration = await ensureDirectLangfuseIntegration(
-			providerId,
-			config,
-		);
-		return integration
-			? { isEnabled: true, integrations: integration }
-			: TELEMETRY_DISABLED;
-	}
-
-	let relayTracer = await getHostOtlpTracer();
-	if (!relayTracer) {
-		const config = readDirectLangfuseTelemetryConfig();
-		if (!config) return TELEMETRY_DISABLED;
-		const integration = await ensureDirectLangfuseIntegration(
-			providerId,
-			config,
-		);
-		// The host may register its relay during asynchronous direct-runtime
-		// initialization. Apply its policy before selecting the stream's route.
-		relayTracer = await getHostOtlpTracer();
-		if (!relayTracer) {
-			return integration
-				? { isEnabled: true, integrations: integration }
-				: TELEMETRY_DISABLED;
-		}
-	}
-
-	if (await isTelemetryOptedOutGlobally()) {
-		return TELEMETRY_DISABLED;
-	}
-
-	const percent = readTraceSamplePercent();
-	if (percent <= 0) {
-		return TELEMETRY_DISABLED;
-	}
-	if (percent < 100) {
-		// No stable key means no deterministic decision; stay off rather than
-		// flickering per request and fragmenting tasks across the sample line.
-		if (!samplingKey) {
-			return TELEMETRY_DISABLED;
-		}
-		if (fnv1a32(samplingKey) % 100 >= percent) {
-			return TELEMETRY_DISABLED;
-		}
-	}
-	const { LangfuseStreamTelemetry } = await import(
-		"./langfuse-stream-telemetry"
-	);
-	// Resolve the host tracer per call so remote-config replacement cannot
-	// leave a cached integration attached to a shut-down provider.
-	const integration = new LangfuseStreamTelemetry(relayTracer);
-	const recordContent = isEnvTruthy(process.env.CLINE_TRACE_RECORD_CONTENT);
-	return {
-		isEnabled: true,
-		integrations: integration,
-		recordInputs: recordContent,
-		recordOutputs: recordContent,
-	};
+	// Telemetry disabled for personal use.
+	return TELEMETRY_DISABLED;
 }
 
 function readTraceSamplePercent(): number {
