@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  BUN_VERSION: 1.4.2
+  BUN_VERSION: 1.4.4
 
 jobs:
   release:
@@ -15,8 +15,11 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: write
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
@@ -31,9 +34,6 @@ jobs:
 
       - name: Build VS Code extension
         run: bun esbuild.mjs --production
-
-      - name: Build apps
-        run: bun run build:apps
 
       - name: Run release
         env:

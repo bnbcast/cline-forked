@@ -17,44 +17,17 @@ on:
         type: number
 
 env:
-  BUN_VERSION: 1.4.2
+  BUN_VERSION: 1.4.4
 
 jobs:
-  setup:
-    name: Setup Agent Environment
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    outputs:
-      event: ${{ github.event_name }}
-      issue_number: ${{ github.event.issue.number || inputs.issue_number || '' }}
-      pr_number: ${{ github.event.pull_request.number || inputs.pr_number || '' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Install dependencies
-        run: bun install --no-verify
-
-      - name: Build SDK
-        run: bun run build:sdk
-
-      - name: Print event context
-        run: |
-          echo "Event: ${{ github.event_name }}"
-          echo "Issue: ${{ github.event.issue.number || inputs.issue_number || 'none' }}"
-          echo "PR: ${{ github.event.pull_request.number || inputs.pr_number || 'none' }}"
-
   agent:
     name: Run AI Agent
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: setup
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
@@ -66,6 +39,26 @@ jobs:
 
       - name: Build SDK
         run: bun run build:sdk
+
+      - name: Get issue/PR context
+        id: context
+        run: |
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+            echo "title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
+            echo "body=${{ github.event.issue.body }}" >> $GITHUB_OUTPUT
+            echo "type=issue" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+            echo "body=${{ github.event.pull_request.body }}" >> $GITHUB_OUTPUT
+            echo "type=pr" >> $GITHUB_OUTPUT
+          else
+            echo "number=${{ inputs.issue_number || inputs.pr_number || 0 }}" >> $GITHUB_OUTPUT
+            echo "title=manual" >> $GITHUB_OUTPUT
+            echo "body=" >> $GITHUB_OUTPUT
+            echo "type=manual" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run AI agent
         env:
@@ -74,4 +67,10 @@ jobs:
           CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          echo "AI agent environment ready for issue ${{ needs.setup.outputs.issue_number }} and PR ${{ needs.setup.outputs.pr_number }}"
+          bun run cli "Fix issue #${{ steps.context.outputs.number }}: ${{ steps.context.outputs.title }}
+
+          ${{ steps.context.outputs.body }}
+
+          Repository context: This is the Cline monorepo. Build with bun run build:sdk. Lint with bun run lint. Typecheck with bun run types. Test with bun run test.
+
+          Make the necessary code changes to fix the issue, then verify with lint and typecheck."
