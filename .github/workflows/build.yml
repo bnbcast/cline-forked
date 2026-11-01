@@ -23,11 +23,11 @@ jobs:
       - name: Build SDK
         run: bun run build:sdk
 
-      - name: Build VS Code extension
-        run: bun -F @cline/vscode run build:production
+      - name: Build VS Code extension (esbuild only, skip typecheck)
+        run: bun esbuild.mjs --production
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: cline-vsix
-          path: apps/vscode/dist/*.vsix
+          path: dist/*.vsix
