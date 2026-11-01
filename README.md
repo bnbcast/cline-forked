@@ -6,6 +6,7 @@
 
 <p align="center">
 The open source coding agent in your IDE, terminal, & desktop!
+  I promise i'll restore the license change and etc later
 </p>
 
 <div align="center">
