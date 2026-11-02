@@ -147,6 +147,14 @@ export class ClineAccountService {
 		return this.request<UserCurrentPlan | undefined>("/api/v1/users/me/plan");
 	}
 
+	public async fetchUserOrganizations(): Promise<
+		Array<{ organizationId: string; name: string; active?: boolean }>
+	> {
+		return this.request<Array<{ organizationId: string; name: string; active?: boolean }>>(
+			"/api/v1/users/me/organizations",
+		);
+	}
+
 	private async resolveUserId(userId?: string): Promise<string> {
 		const explicit = userId?.trim();
 		if (explicit) {

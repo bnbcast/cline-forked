@@ -1,4 +1,15 @@
+import type {
+	TeamProgressLifecycleEvent,
+	TeamProgressSummary,
+} from "@cline/shared";
 import type { CoreSessionSnapshot } from "../session/session-snapshot";
+
+export interface TeamProgressEvent {
+	sessionId: string;
+	teamName: string;
+	lifecycle: TeamProgressLifecycleEvent;
+	summary: TeamProgressSummary;
+}
 
 export interface SessionChunkEvent {
 	sessionId: string;
@@ -81,4 +92,5 @@ export type CoreSessionEvent =
 	| { type: "session_snapshot"; payload: SessionSnapshotEvent }
 	| { type: "ended"; payload: SessionEndedEvent }
 	| { type: "hook"; payload: SessionToolEvent }
-	| { type: "status"; payload: { sessionId: string; status: string } };
+	| { type: "status"; payload: { sessionId: string; status: string } }
+	| { type: "team_progress"; payload: TeamProgressEvent };

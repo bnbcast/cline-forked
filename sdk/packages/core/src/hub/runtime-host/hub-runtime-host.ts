@@ -671,6 +671,8 @@ function toSessionRecord(session: HubSessionRecord): SessionRecord {
 			session.runtimeOptions?.enableTools ?? metadata?.enableTools === true,
 		enableSpawn:
 			session.runtimeOptions?.enableSpawn ?? metadata?.enableSpawn === true,
+		enableTeams:
+			session.runtimeOptions?.enableTeams ?? metadata?.enableTeams === true,
 		prompt: typeof metadata?.prompt === "string" ? metadata.prompt : undefined,
 		metadata,
 		updatedAt: new Date(session.updatedAt).toISOString(),

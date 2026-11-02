@@ -1,6 +1,30 @@
 import type { ITelemetryService } from "@cline/shared";
 import type { CoreSessionConfig } from "../types/config";
 
+export type TelemetryAgentIdentityProperties = {
+	agentId: string;
+	conversationId: string;
+};
+
+export interface MentionEnrichmentResult {
+	prompt: string;
+	mentions: string[];
+	matchedFiles: string[];
+	ignoredMentions: string[];
+}
+
+export async function enrichPromptWithMentions(
+	input: string,
+	cwd: string,
+): Promise<MentionEnrichmentResult> {
+	return {
+		prompt: input,
+		mentions: [],
+		matchedFiles: [],
+		ignoredMentions: [],
+	};
+}
+
 export function emitSessionCreationTelemetry(
 	config: CoreSessionConfig,
 	sessionId: string,

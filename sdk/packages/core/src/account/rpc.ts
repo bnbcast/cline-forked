@@ -47,6 +47,16 @@ export async function executeClineAccountAction(
 			return service.fetchFeaturebaseToken?.();
 		case "fetchCurrentUserPlan":
 			return service.fetchCurrentUserPlan?.();
+		case "fetchUserOrganizations":
+			throw new Error("fetchUserOrganizations not supported by RPC service");
+		case "fetchOrganizationBalance":
+			throw new Error("fetchOrganizationBalance not supported by RPC service");
+		case "fetchOrganizationUsageTransactions":
+			throw new Error(
+				"fetchOrganizationUsageTransactions not supported by RPC service",
+			);
+		case "switchAccount":
+			throw new Error("switchAccount not supported by RPC service");
 		default: {
 			const exhaustive: never = request;
 			throw new Error(

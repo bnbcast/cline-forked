@@ -133,6 +133,7 @@ export function createClineCoreAutomationRuntimeHandlers(
 					maxIterations: request.maxIterations,
 					enableTools: request.enableTools !== false,
 					enableSpawnAgent: request.enableSpawn !== false,
+					enableAgentTeams: false,
 					disableMcpSettingsTools: request.disableMcpSettingsTools,
 					agentPluginPaths: request.agentPluginPaths,
 					missionLogIntervalSteps: request.missionStepInterval,

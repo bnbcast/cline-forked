@@ -215,6 +215,7 @@ export function toSessionRecord(row: SessionRow): SessionRecord {
 		workspaceRoot: row.workspaceRoot,
 		enableTools: row.enableTools,
 		enableSpawn: row.enableSpawn,
+		enableTeams: row.enableTeams,
 		parentSessionId: row.parentSessionId ?? undefined,
 		parentAgentId: row.parentAgentId ?? undefined,
 		agentId: row.agentId ?? undefined,
