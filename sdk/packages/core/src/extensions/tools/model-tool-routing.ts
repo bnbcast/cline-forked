@@ -44,6 +44,12 @@ const TOOL_NAME_TO_FLAG: Record<
 		| "enableSkills"
 		| "enableAskQuestion"
 		| "enableSubmitAndExit"
+		| "enableBrowserNavigate"
+		| "enableBrowserClick"
+		| "enableBrowserType"
+		| "enableBrowserScreenshot"
+		| "enableBrowserEvaluate"
+		| "enableBrowserClose"
 	>
 > = {
 	read_files: "enableReadFiles",
@@ -55,6 +61,12 @@ const TOOL_NAME_TO_FLAG: Record<
 	skills: "enableSkills",
 	ask_question: "enableAskQuestion",
 	submit_and_exit: "enableSubmitAndExit",
+	browser_navigate: "enableBrowserNavigate",
+	browser_click: "enableBrowserClick",
+	browser_type: "enableBrowserType",
+	browser_screenshot: "enableBrowserScreenshot",
+	browser_evaluate: "enableBrowserEvaluate",
+	browser_close: "enableBrowserClose",
 };
 
 export const DEFAULT_MODEL_TOOL_ROUTING_RULES: ToolRoutingRule[] = [

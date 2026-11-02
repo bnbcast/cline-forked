@@ -298,6 +298,92 @@ export const SubmitInputSchema = z.object({
 });
 
 // =============================================================================
+// Browser Tool Schemas
+// =============================================================================
+
+/**
+ * Schema for browser_navigate tool input
+ */
+export const BrowserNavigateInputSchema = z
+	.object({
+		url: z
+			.string()
+			.url()
+			.describe(
+				"The full URL to navigate to, including http:// or https://",
+			),
+	})
+	.describe("Navigate the browser to a URL");
+
+/**
+ * Schema for browser_click tool input
+ */
+export const BrowserClickInputSchema = z
+	.object({
+		selector: z
+			.string()
+			.min(1)
+			.describe("CSS selector of the element to click on the current page"),
+	})
+	.describe("Click an element on the current page by CSS selector");
+
+/**
+ * Schema for browser_type tool input
+ */
+export const BrowserTypeInputSchema = z
+	.object({
+		selector: z
+			.string()
+			.min(1)
+			.describe(
+				"CSS selector of the input element to type into on the current page",
+			),
+		text: z.string().describe("Text to type into the element"),
+		pressEnter: z
+			.boolean()
+			.optional()
+			.describe(
+				"Whether to press Enter after typing the text (default: false)",
+			),
+	})
+	.describe("Type text into an element on the current page by CSS selector");
+
+/**
+ * Schema for browser_screenshot tool input
+ */
+export const BrowserScreenshotInputSchema = z
+	.object({
+		fullPage: z
+			.boolean()
+			.optional()
+			.describe(
+				"Whether to capture the full page instead of just the visible viewport (default: false)",
+			),
+	})
+	.describe("Capture a screenshot of the current page");
+
+/**
+ * Schema for browser_evaluate tool input
+ */
+export const BrowserEvaluateInputSchema = z
+	.object({
+		script: z
+			.string()
+			.min(1)
+			.describe(
+				"JavaScript expression to evaluate in the context of the current page",
+			),
+	})
+	.describe("Evaluate JavaScript in the current page context");
+
+/**
+ * Schema for browser_close tool input
+ */
+export const BrowserCloseInputSchema = z
+	.object({})
+	.describe("Close the browser and end the session");
+
+// =============================================================================
 // Type Definitions (derived from Zod schemas)
 // =============================================================================
 
@@ -358,3 +444,35 @@ export type AskQuestionInput = z.infer<typeof AskQuestionInputSchema>;
  * Input for the submit and exit tool
  */
 export type SubmitInput = z.infer<typeof SubmitInputSchema>;
+
+/**
+ * Input for the browser_navigate tool
+ */
+export type BrowserNavigateInput = z.infer<typeof BrowserNavigateInputSchema>;
+
+/**
+ * Input for the browser_click tool
+ */
+export type BrowserClickInput = z.infer<typeof BrowserClickInputSchema>;
+
+/**
+ * Input for the browser_type tool
+ */
+export type BrowserTypeInput = z.infer<typeof BrowserTypeInputSchema>;
+
+/**
+ * Input for the browser_screenshot tool
+ */
+export type BrowserScreenshotInput = z.infer<
+	typeof BrowserScreenshotInputSchema
+>;
+
+/**
+ * Input for the browser_evaluate tool
+ */
+export type BrowserEvaluateInput = z.infer<typeof BrowserEvaluateInputSchema>;
+
+/**
+ * Input for the browser_close tool
+ */
+export type BrowserCloseInput = z.infer<typeof BrowserCloseInputSchema>;

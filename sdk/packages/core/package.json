@@ -75,6 +75,7 @@
 		"nanoid": "^5.1.7",
 		"proxy-from-env": "^2.1.0",
 		"simple-git": "3.36.0",
+		"playwright": "^1.53.0",
 		"ws": "^8.20.0",
 		"yaml": "^2.8.2",
 		"zod": "^4.3.6"
