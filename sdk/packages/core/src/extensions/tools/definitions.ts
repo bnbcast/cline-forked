@@ -40,6 +40,18 @@ import {
 	ApplyPatchInputUnionSchema,
 	type AskQuestionInput,
 	AskQuestionInputSchema,
+	type BrowserClickInput,
+	BrowserClickInputSchema,
+	type BrowserCloseInput,
+	BrowserCloseInputSchema,
+	type BrowserEvaluateInput,
+	BrowserEvaluateInputSchema,
+	type BrowserNavigateInput,
+	BrowserNavigateInputSchema,
+	type BrowserScreenshotInput,
+	BrowserScreenshotInputSchema,
+	type BrowserTypeInput,
+	BrowserTypeInputSchema,
 	type EditFileInput,
 	EditFileInputSchema,
 	type FetchWebContentInput,
@@ -61,6 +73,12 @@ import {
 import type {
 	ApplyPatchExecutor,
 	AskQuestionExecutor,
+	BrowserClickExecutor,
+	BrowserCloseExecutor,
+	BrowserEvaluateExecutor,
+	BrowserNavigateExecutor,
+	BrowserScreenshotExecutor,
+	BrowserTypeExecutor,
 	CreateDefaultToolsOptions,
 	DefaultToolsConfig,
 	EditorExecutor,
@@ -616,6 +634,210 @@ export function createWebFetchTool(
 	});
 }
 
+/**
+ * Create the browser_navigate tool
+ *
+ * Navigates the browser to a URL using Playwright.
+ */
+export function createBrowserNavigateTool(
+	executor: BrowserNavigateExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserNavigateInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserNavigateInput, ToolOperationResult>({
+		name: "browser_navigate",
+		description:
+			"Navigate the browser to a URL. Use this to load web pages for reading, interaction, or data extraction. Only one page is active at a time; calling navigate replaces the current page.",
+		inputSchema: zodToJsonSchema(BrowserNavigateInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_navigate timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: input.url,
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
+/**
+ * Create the browser_click tool
+ *
+ * Clicks an element on the current page by CSS selector using Playwright.
+ */
+export function createBrowserClickTool(
+	executor: BrowserClickExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserClickInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserClickInput, ToolOperationResult>({
+		name: "browser_click",
+		description:
+			"Click an element on the current page by CSS selector. Use for buttons, links, checkboxes, and other interactive elements.",
+		inputSchema: zodToJsonSchema(BrowserClickInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_click timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: input.selector,
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
+/**
+ * Create the browser_type tool
+ *
+ * Types text into an input element on the current page using Playwright.
+ */
+export function createBrowserTypeTool(
+	executor: BrowserTypeExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserTypeInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserTypeInput, ToolOperationResult>({
+		name: "browser_type",
+		description:
+			"Type text into an input element on the current page by CSS selector. Optionally press Enter after typing.",
+		inputSchema: zodToJsonSchema(BrowserTypeInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_type timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: input.selector,
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
+/**
+ * Create the browser_screenshot tool
+ *
+ * Captures a screenshot of the current page using Playwright.
+ */
+export function createBrowserScreenshotTool(
+	executor: BrowserScreenshotExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserScreenshotInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserScreenshotInput, ToolOperationResult>({
+		name: "browser_screenshot",
+		description:
+			"Capture a screenshot of the current page. Returns the image as a base64 data URL. Optionally capture the full page instead of just the viewport.",
+		inputSchema: zodToJsonSchema(BrowserScreenshotInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_screenshot timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: "browser_screenshot",
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
+/**
+ * Create the browser_evaluate tool
+ *
+ * Evaluates JavaScript in the context of the current page using Playwright.
+ */
+export function createBrowserEvaluateTool(
+	executor: BrowserEvaluateExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserEvaluateInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserEvaluateInput, ToolOperationResult>({
+		name: "browser_evaluate",
+		description:
+			"Evaluate a JavaScript expression in the context of the current page. Returns the result as a string. Use for extracting data, checking state, or running page-specific logic.",
+		inputSchema: zodToJsonSchema(BrowserEvaluateInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_evaluate timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: input.script,
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
+/**
+ * Create the browser_close tool
+ *
+ * Closes the browser and ends the session using Playwright.
+ */
+export function createBrowserCloseTool(
+	executor: BrowserCloseExecutor,
+	config: Pick<DefaultToolsConfig, "browserTimeoutMs"> = {},
+): AgentTool<BrowserCloseInput, ToolOperationResult> {
+	const timeoutMs = config.browserTimeoutMs ?? 30000;
+
+	return createTool<BrowserCloseInput, ToolOperationResult>({
+		name: "browser_close",
+		description:
+			"Close the browser and end the session. Call this when browser automation is complete to free resources.",
+		inputSchema: zodToJsonSchema(BrowserCloseInputSchema),
+		timeoutMs,
+		retryable: false,
+		maxRetries: 0,
+		execute: async (input, context) => {
+			const result = await withTimeout(
+				executor(input, context),
+				timeoutMs,
+				`browser_close timed out after ${timeoutMs}ms`,
+			);
+			return {
+				query: "browser_close",
+				result,
+				success: true,
+			};
+		},
+	});
+}
+
 const APPLY_PATCH_TOOL_DESC = `Use \`apply_patch\` to edit files with the canonical freeform patch grammar. Pass the patch text directly as the \`input\` string. Prefer the exact format below:
 
 *** Begin Patch
@@ -965,6 +1187,7 @@ export function createDefaultTools(
 		enableEditor = true,
 		enableSkills = true,
 		enableAskQuestion = true,
+		enableBrowser = true,
 		enableSubmitAndExit = false,
 		...config
 	} = options;
@@ -1015,6 +1238,28 @@ export function createDefaultTools(
 	// Add submit_and_exit tool if enabled and executor provided
 	if (submitExecutor) {
 		tools.push(createSubmitAndExitTool(submitExecutor, config));
+	}
+
+	// Add browser tools if enabled and executors provided
+	if (enableBrowser) {
+		if (executors.browserNavigate) {
+			tools.push(createBrowserNavigateTool(executors.browserNavigate, config));
+		}
+		if (executors.browserClick) {
+			tools.push(createBrowserClickTool(executors.browserClick, config));
+		}
+		if (executors.browserType) {
+			tools.push(createBrowserTypeTool(executors.browserType, config));
+		}
+		if (executors.browserScreenshot) {
+			tools.push(createBrowserScreenshotTool(executors.browserScreenshot, config));
+		}
+		if (executors.browserEvaluate) {
+			tools.push(createBrowserEvaluateTool(executors.browserEvaluate, config));
+		}
+		if (executors.browserClose) {
+			tools.push(createBrowserCloseTool(executors.browserClose, config));
+		}
 	}
 
 	return tools as unknown as AgentTool[];

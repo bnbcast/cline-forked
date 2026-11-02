@@ -12,6 +12,12 @@ import type {
 } from "@cline/shared";
 import type {
 	ApplyPatchInput,
+	BrowserClickInput,
+	BrowserCloseInput,
+	BrowserEvaluateInput,
+	BrowserNavigateInput,
+	BrowserScreenshotInput,
+	BrowserTypeInput,
 	EditFileInput,
 	ReadFileRequest,
 	StructuredCommandInput,
@@ -94,6 +100,78 @@ export type ShellExecutor = (
 export type WebFetchExecutor = (
 	url: string,
 	prompt: string,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for navigating the browser to a URL
+ *
+ * @param input - URL to navigate to
+ * @param context - Tool execution context
+ * @returns Navigation result
+ */
+export type BrowserNavigateExecutor = (
+	input: BrowserNavigateInput,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for clicking an element on the current page
+ *
+ * @param input - CSS selector of the element to click
+ * @param context - Tool execution context
+ * @returns Click result
+ */
+export type BrowserClickExecutor = (
+	input: BrowserClickInput,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for typing text into an element on the current page
+ *
+ * @param input - Selector, text, and optional pressEnter flag
+ * @param context - Tool execution context
+ * @returns Type result
+ */
+export type BrowserTypeExecutor = (
+	input: BrowserTypeInput,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for capturing a screenshot of the current page
+ *
+ * @param input - Optional fullPage flag
+ * @param context - Tool execution context
+ * @returns Screenshot result
+ */
+export type BrowserScreenshotExecutor = (
+	input: BrowserScreenshotInput,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for evaluating JavaScript in the current page context
+ *
+ * @param input - JavaScript expression to evaluate
+ * @param context - Tool execution context
+ * @returns Evaluation result
+ */
+export type BrowserEvaluateExecutor = (
+	input: BrowserEvaluateInput,
+	context: AgentToolContext,
+) => Promise<string>;
+
+/**
+ * Executor for closing the browser and ending the session
+ *
+ * @param input - Empty object
+ * @param context - Tool execution context
+ * @returns Close result
+ */
+export type BrowserCloseExecutor = (
+	input: BrowserCloseInput,
 	context: AgentToolContext,
 ) => Promise<string>;
 
@@ -216,6 +294,18 @@ export interface ToolExecutors {
 	askQuestion?: AskQuestionExecutor;
 	/** Final submission implementation */
 	submit?: VerifySubmitExecutor;
+	/** Browser navigation implementation */
+	browserNavigate?: BrowserNavigateExecutor;
+	/** Browser click implementation */
+	browserClick?: BrowserClickExecutor;
+	/** Browser type implementation */
+	browserType?: BrowserTypeExecutor;
+	/** Browser screenshot implementation */
+	browserScreenshot?: BrowserScreenshotExecutor;
+	/** Browser evaluate implementation */
+	browserEvaluate?: BrowserEvaluateExecutor;
+	/** Browser close implementation */
+	browserClose?: BrowserCloseExecutor;
 }
 
 // =============================================================================
@@ -234,7 +324,13 @@ export type DefaultToolName =
 	| "editor"
 	| "skills"
 	| "ask_question"
-	| "submit_and_exit";
+	| "submit_and_exit"
+	| "browser_navigate"
+	| "browser_click"
+	| "browser_type"
+	| "browser_screenshot"
+	| "browser_evaluate"
+	| "browser_close";
 
 /**
  * Configuration for enabling/disabling default tools
@@ -297,10 +393,52 @@ export interface DefaultToolsConfig {
 	enableAskQuestion?: boolean;
 
 	/**
+	 * Enable the browser tools
+	 * @default true
+	 */
+	enableBrowser?: boolean;
+
+	/**
 	 * Enable the submit_and_exit tool
 	 * @default false
 	 */
 	enableSubmitAndExit?: boolean;
+
+	/**
+	 * Enable the browser_navigate tool
+	 * @default false
+	 */
+	enableBrowserNavigate?: boolean;
+
+	/**
+	 * Enable the browser_click tool
+	 * @default false
+	 */
+	enableBrowserClick?: boolean;
+
+	/**
+	 * Enable the browser_type tool
+	 * @default false
+	 */
+	enableBrowserType?: boolean;
+
+	/**
+	 * Enable the browser_screenshot tool
+	 * @default false
+	 */
+	enableBrowserScreenshot?: boolean;
+
+	/**
+	 * Enable the browser_evaluate tool
+	 * @default false
+	 */
+	enableBrowserEvaluate?: boolean;
+
+	/**
+	 * Enable the browser_close tool
+	 * @default false
+	 */
+	enableBrowserClose?: boolean;
 
 	/**
 	 * Current working directory for tools that need it
@@ -332,6 +470,12 @@ export interface DefaultToolsConfig {
 	 * @default 30000
 	 */
 	webFetchTimeoutMs?: number;
+
+	/**
+	 * Timeout for browser tool operations in milliseconds
+	 * @default 30000
+	 */
+	browserTimeoutMs?: number;
 
 	/**
 	 * Timeout for search operations in milliseconds

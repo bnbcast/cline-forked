@@ -22,6 +22,7 @@ import {
 	createWebFetchExecutor,
 	type WebFetchExecutorOptions,
 } from "./web-fetch";
+import { createBrowserExecutors, type BrowserSessionOptions } from "./browser";
 
 // Re-export individual executors and their options types
 export {
@@ -52,6 +53,11 @@ export {
 	createWebFetchExecutor,
 	type WebFetchExecutorOptions,
 } from "./web-fetch";
+export {
+	createBrowserExecutors,
+	type BrowserSessionOptions,
+	BrowserSession,
+} from "./browser";
 
 /**
  * Options for creating default executors
@@ -63,6 +69,7 @@ export interface DefaultExecutorsOptions {
 	webFetch?: WebFetchExecutorOptions;
 	applyPatch?: ApplyPatchExecutorOptions;
 	editor?: EditorExecutorOptions;
+	browser?: BrowserSessionOptions;
 }
 
 /**
@@ -104,5 +111,6 @@ export function createDefaultExecutors(
 		webFetch: createWebFetchExecutor(options.webFetch),
 		applyPatch: createApplyPatchExecutor(options.applyPatch),
 		editor: createEditorExecutor(options.editor),
+		...createBrowserExecutors(options.browser),
 	};
 }
