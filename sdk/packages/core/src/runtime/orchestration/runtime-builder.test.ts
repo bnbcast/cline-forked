@@ -17,7 +17,10 @@ import {
 import { setHomeDir } from "@cline/shared/storage";
 import { afterEach, describe, expect, it } from "vitest";
 import { createUserInstructionConfigService } from "../../extensions/config";
-import { PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME } from "../../extensions/tools/command-guard-extension";
+import {
+	COMMAND_APPROVAL_EXTENSION_NAME,
+	PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME,
+} from "../../extensions/tools/command-guard-extension";
 import { TelemetryService } from "../../services/telemetry/TelemetryService";
 import type { CoreSessionConfig } from "../../types/config";
 import { DefaultRuntimeBuilder } from "./runtime-builder";
@@ -301,8 +304,14 @@ Use the review guidance.`,
 		expect(planGuards).toHaveLength(1);
 		expect(planGuards[0]?.hooks?.beforeTool).toBeTypeOf("function");
 		expect(
+			(planRuntime.extensions ?? []).map((extension) => extension.name),
+		).toContain(COMMAND_APPROVAL_EXTENSION_NAME);
+		expect(
 			(actRuntime.extensions ?? []).map((extension) => extension.name),
 		).not.toContain(PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME);
+		expect(
+			(actRuntime.extensions ?? []).map((extension) => extension.name),
+		).toContain(COMMAND_APPROVAL_EXTENSION_NAME);
 	});
 
 	it("does not register the plan-mode command-guard when tools are disabled", async () => {
@@ -316,6 +325,9 @@ Use the review guidance.`,
 		expect(
 			(runtime.extensions ?? []).map((extension) => extension.name),
 		).not.toContain(PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME);
+		expect(
+			(runtime.extensions ?? []).map((extension) => extension.name),
+		).not.toContain(COMMAND_APPROVAL_EXTENSION_NAME);
 	});
 
 	it("uses yolo preset only when yolo mode is explicit", async () => {

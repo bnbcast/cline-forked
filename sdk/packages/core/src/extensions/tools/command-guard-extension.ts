@@ -23,6 +23,7 @@ import type {
 } from "@cline/shared";
 import { capturePlanModeCommandBlocked } from "../../services/telemetry/core-events";
 import {
+	findCommandRequiringApproval,
 	findFileEditingCommand,
 	formatPlanModeBlockedCommandError,
 } from "./command-guard";
@@ -31,6 +32,8 @@ import { normalizeRunCommandsInput } from "./helpers";
 
 export const PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME =
 	"core.plan-mode-command-guard";
+export const COMMAND_APPROVAL_EXTENSION_NAME =
+	"core.destructive-command-approval";
 
 export interface PlanModeCommandGuardOptions {
 	telemetry?: ITelemetryService;
@@ -79,6 +82,45 @@ export function createPlanModeCommandGuardExtension(
 
 	return {
 		name: PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME,
+		manifest: {
+			capabilities: ["hooks"],
+		},
+		hooks: {
+			beforeTool,
+		},
+	};
+}
+
+export function createCommandApprovalExtension(): AgentExtension {
+	const beforeTool = (
+		context: AgentBeforeToolContext,
+	): AgentBeforeToolResult | undefined => {
+		if (context.tool.name !== DefaultToolNames.RUN_COMMANDS) {
+			return undefined;
+		}
+
+		let commands: ReturnType<typeof normalizeRunCommandsInput>;
+		try {
+			commands = normalizeRunCommandsInput(context.input);
+		} catch {
+			return undefined;
+		}
+
+		for (const command of commands) {
+			const reason = findCommandRequiringApproval(command);
+			if (reason) {
+				return {
+					policy: { autoApprove: false },
+					appendContext: `${reason} requires explicit user approval before execution.`,
+				};
+			}
+		}
+
+		return undefined;
+	};
+
+	return {
+		name: COMMAND_APPROVAL_EXTENSION_NAME,
 		manifest: {
 			capabilities: ["hooks"],
 		},

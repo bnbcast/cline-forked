@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	findCommandRequiringApproval,
 	findFileEditingCommand,
 	formatPlanModeBlockedCommandError,
 } from "./command-guard";
@@ -8,6 +9,31 @@ import {
 function blocks(command: string): boolean {
 	return findFileEditingCommand(command) !== undefined;
 }
+
+describe("findCommandRequiringApproval", () => {
+	it.each([
+		["rm -rf build", "`rm`"],
+		["sudo ls -la", "`sudo` (privilege escalation)"],
+		["format C:", "`format`"],
+		["mkfs.ext4 /dev/sda1", "`mkfs.ext4`"],
+		["echo hello > output.txt", "output redirection (`> output.txt`)"],
+	])("requires approval for %s", (command, reason) => {
+		expect(findCommandRequiringApproval(command)).toBe(reason);
+	});
+
+	it.each(["ls -la", "git status --short", "echo 'sudo rm -rf build'"])(
+		"does not require approval for %s",
+		(command) => {
+			expect(findCommandRequiringApproval(command)).toBeUndefined();
+		},
+	);
+
+	it("requires approval for structured elevated commands", () => {
+		expect(
+			findCommandRequiringApproval({ command: "sudo", args: ["rm", "file"] }),
+		).toBe("`sudo` (privilege escalation)");
+	});
+});
 
 describe("findFileEditingCommand — read-only commands pass", () => {
 	it.each([
