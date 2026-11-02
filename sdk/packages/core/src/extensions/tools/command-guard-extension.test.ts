@@ -6,6 +6,8 @@ import type {
 } from "@cline/shared";
 import { describe, expect, it, vi } from "vitest";
 import {
+	createCommandApprovalExtension,
+	COMMAND_APPROVAL_EXTENSION_NAME,
 	createPlanModeCommandGuardExtension,
 	PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME,
 } from "./command-guard-extension";
@@ -73,6 +75,57 @@ describe("plan-mode command-guard extension", () => {
 		const extension = createPlanModeCommandGuardExtension();
 		expect(extension.name).toBe(PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME);
 		expect(extension.manifest.capabilities).toContain("hooks");
+	});
+
+	describe("destructive-command approval extension", () => {
+		it("declares the hooks capability under a stable name", () => {
+			const extension = createCommandApprovalExtension();
+			expect(extension.name).toBe(COMMAND_APPROVAL_EXTENSION_NAME);
+			expect(extension.manifest.capabilities).toContain("hooks");
+		});
+
+		it("requires approval for destructive commands", async () => {
+			const extension = createCommandApprovalExtension();
+			const result = await runBeforeTool(
+				extension,
+				makeContext("run_commands", { commands: ["rm -rf build"] }),
+			);
+
+			expect(result?.skip).toBeUndefined();
+			expect(result?.policy).toEqual({ autoApprove: false });
+			expect(result?.appendContext).toContain("explicit user approval");
+		});
+
+		it("requires approval for elevated and disk-format commands", async () => {
+			const extension = createCommandApprovalExtension();
+			for (const command of ["sudo whoami", "format C:"]) {
+				const result = await runBeforeTool(
+					extension,
+					makeContext("run_commands", { commands: [command] }),
+				);
+				expect(result?.policy).toEqual({ autoApprove: false });
+			}
+		});
+
+		it("allows read-only commands without overriding policy", async () => {
+			const extension = createCommandApprovalExtension();
+			const result = await runBeforeTool(
+				extension,
+				makeContext("run_commands", { commands: ["ls -la", "git status"] }),
+			);
+
+			expect(result).toBeUndefined();
+		});
+
+		it("ignores other tools", async () => {
+			const extension = createCommandApprovalExtension();
+			const result = await runBeforeTool(
+				extension,
+				makeContext("read_files", { files: [{ path: "rm" }] }),
+			);
+
+			expect(result).toBeUndefined();
+		});
 	});
 
 	it("skips run_commands calls containing a file-editing command", async () => {

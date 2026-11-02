@@ -40,7 +40,10 @@ import {
 	ToolPresets,
 	type ToolRoutingRule,
 } from "../../extensions/tools";
-import { createPlanModeCommandGuardExtension } from "../../extensions/tools/command-guard-extension";
+import {
+	createCommandApprovalExtension,
+	createPlanModeCommandGuardExtension,
+} from "../../extensions/tools/command-guard-extension";
 import {
 	AgentTeamsRuntime,
 	bootstrapAgentTeams,
@@ -587,8 +590,12 @@ export class DefaultRuntimeBuilder implements RuntimeBuilder {
 						telemetry: telemetry ?? config.telemetry,
 					})
 				: undefined;
+		const commandApprovalGuard = normalized.enableTools
+			? createCommandApprovalExtension()
+			: undefined;
 		const injectedExtensions = [
 			userInstructionPlugin,
+			commandApprovalGuard,
 			planModeCommandGuard,
 		].filter((extension) => extension !== undefined);
 		const runtimeExtensions =

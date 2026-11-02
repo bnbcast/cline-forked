@@ -100,6 +100,16 @@ primitive vocabulary.
 - `createDefaultTools(...)`
 - `createDefaultExecutors(...)`
 
+### Tool Execution Security
+
+Built-in tools execute in the host environment and inherit the operating
+system account's permissions. They are not isolated by an OS sandbox; if the
+host runs with elevated privileges, its tools inherit those privileges too.
+Detected shell mutations, destructive disk operations, and privilege-elevation
+wrappers require explicit approval through the host's tool-approval callback.
+This approval guard is a heuristic, not a sandbox or a complete shell
+interpreter.
+
 ### Storage and Settings
 
 The package also exports storage and settings helpers such as:

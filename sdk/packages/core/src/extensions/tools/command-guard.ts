@@ -28,6 +28,10 @@ const BLOCKED_COMMANDS = new Set([
 	"mv",
 	"cp",
 	"dd",
+	"mkfs",
+	"fdisk",
+	"parted",
+	"wipefs",
 	"touch",
 	"mkdir",
 	"ln",
@@ -71,6 +75,12 @@ const BLOCKED_COMMANDS = new Set([
 	"rni",
 	"ac",
 	"clc",
+	"format",
+	"diskpart",
+	"shutdown",
+	"reboot",
+	"poweroff",
+	"halt",
 ]);
 
 /** Subcommands that mutate state, keyed by the command they belong to. */
@@ -189,6 +199,9 @@ const READ_ONLY_GIT_FORMS: Record<string, Set<string>> = {
 const WRAPPERS = new Set([
 	"sudo",
 	"doas",
+	"su",
+	"runas",
+	"pkexec",
 	"env",
 	"command",
 	"builtin",
@@ -198,6 +211,13 @@ const WRAPPERS = new Set([
 	"stdbuf",
 	"timeout",
 	"xargs",
+]);
+const PRIVILEGE_ESCALATION_WRAPPERS = new Set([
+	"sudo",
+	"doas",
+	"su",
+	"runas",
+	"pkexec",
 ]);
 
 /** Shell reserved words that can precede the command word. */
@@ -298,7 +318,10 @@ function maskNonCommandText(command: string): string {
 }
 
 /** Check one command's tokens (command word + args) against the blacklist. */
-function checkTokens(tokens: string[]): string | undefined {
+function checkTokens(
+	tokens: string[],
+	requirePrivilegeApproval = false,
+): string | undefined {
 	let index = 0;
 	while (
 		index < tokens.length &&
@@ -311,6 +334,13 @@ function checkTokens(tokens: string[]): string | undefined {
 		index < tokens.length &&
 		WRAPPERS.has(normalizeCommandName(tokens[index]))
 	) {
+		const wrapper = normalizeCommandName(tokens[index]);
+		if (
+			requirePrivilegeApproval &&
+			PRIVILEGE_ESCALATION_WRAPPERS.has(wrapper)
+		) {
+			return `\`${wrapper}\` (privilege escalation)`;
+		}
 		index += 1;
 		while (
 			index < tokens.length &&
@@ -338,7 +368,7 @@ function checkTokens(tokens: string[]): string | undefined {
 			: undefined;
 	}
 
-	if (BLOCKED_COMMANDS.has(name)) {
+	if (BLOCKED_COMMANDS.has(name) || /^mkfs(?:\.|$)/.test(name)) {
 		return `\`${name}\``;
 	}
 
@@ -460,7 +490,7 @@ function checkTokens(tokens: string[]): string | undefined {
 			) {
 				tail.push(args[cursor]);
 			}
-			const nested = checkTokens(tail);
+			const nested = checkTokens(tail, requirePrivilegeApproval);
 			if (nested) {
 				return nested;
 			}
@@ -476,13 +506,17 @@ function checkTokens(tokens: string[]): string | undefined {
  * file-modifying construct found, or undefined when the command looks
  * read-only.
  */
-export function findFileEditingCommand(
+function findCommandRequiringPolicy(
 	command: string | StructuredCommandInput,
+	requirePrivilegeApproval: boolean,
 ): string | undefined {
 	if (typeof command !== "string") {
 		// Structured argv is executed without shell parsing, so only the
 		// executable and argv matter (a ">" argument is a literal string).
-		return checkTokens([command.command, ...(command.args ?? [])]);
+		return checkTokens(
+			[command.command, ...(command.args ?? [])],
+			requirePrivilegeApproval,
+		);
 	}
 
 	const masked = maskNonCommandText(command);
@@ -500,12 +534,35 @@ export function findFileEditingCommand(
 
 	// Check the command word of every simple command in the string.
 	for (const segment of masked.split(/[\n;|&()`]+/)) {
-		const blocked = checkTokens(segment.trim().split(/\s+/).filter(Boolean));
+		const blocked = checkTokens(
+			segment.trim().split(/\s+/).filter(Boolean),
+			requirePrivilegeApproval,
+		);
 		if (blocked) {
 			return blocked;
 		}
 	}
 	return undefined;
+}
+
+/**
+ * Inspect a command for file mutations, destructive system operations, or
+ * privilege escalation that should require explicit user approval.
+ */
+export function findCommandRequiringApproval(
+	command: string | StructuredCommandInput,
+): string | undefined {
+	return findCommandRequiringPolicy(command, true);
+}
+
+/**
+ * Inspect a run_commands entry for file-modifying constructs, or undefined
+ * when the command looks read-only.
+ */
+export function findFileEditingCommand(
+	command: string | StructuredCommandInput,
+): string | undefined {
+	return findCommandRequiringPolicy(command, false);
 }
 
 /**
